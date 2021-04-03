@@ -1,0 +1,66 @@
+#version 120
+#extension GL_EXT_geometry_shader4 : enable
+
+
+uniform int level;
+uniform vec3 center;
+uniform float radius;
+varying in vec3 lightPos[3];
+varying in vec4 vertColor[3];
+varying out vec4 diffuseColor;
+varying out vec3 fragNormal;
+varying out vec3 lightVector;
+varying out vec3 viewVector;
+
+void addVertex(vec3 base0, vec3 base1, vec3 base2, float t1, float t2)
+{
+	vec3 newv=base0+base1*t1+base2*t2;
+	newv=newv+center;
+	newv=radius*normalize(newv);
+	
+	viewVector=(gl_ModelViewMatrix*vec4(newv, 1.0)).xyz;
+	viewVector=-viewVector;
+	
+	lightVector=vec3(normalize(lightPos[0]+viewVector));
+	
+	vec3 norm=newv-center;
+	norm=normalize(norm);
+	norm=normalize(gl_NormalMatrix*norm);
+	fragNormal=norm;
+	
+	gl_Position=gl_ModelViewProjectionMatrix * vec4(newv,1.0);
+	//diffuseColor=gl_ColorIn[0];
+	diffuseColor=vertColor[0];
+	EmitVertex();
+}
+
+void main()
+{
+	vec3 base0=(gl_PositionIn[0].xyz/gl_PositionIn[0].w-center);
+	vec3 base1=(gl_PositionIn[1].xyz/gl_PositionIn[1].w-gl_PositionIn[0].xyz/gl_PositionIn[0].w);
+	vec3 base2=(gl_PositionIn[2].xyz/gl_PositionIn[2].w-gl_PositionIn[0].xyz/gl_PositionIn[0].w);
+	
+	int height=1;
+	for(int i=0;i<level;i++) height=height*2;
+	float deltaH=1.0/float(height);
+	float heigher=1.0;
+	float lower=1.0-deltaH;
+	for(int i=0;i<height;i++){
+		int width=i+1;
+		float right_heigher=0.0;
+		float right_lower=0.0;
+		float deltaW_heigher=0.0;
+		if(width>=1) deltaW_heigher= (1.0-heigher)/float(width-1);
+		float deltaW_lower= (1.0-lower)/float(width);
+		for(int j=0;j<width;j++){
+			addVertex(base0,base1,base2,lower,right_lower);
+			addVertex(base0,base1,base2,heigher,right_heigher);
+			right_heigher+=deltaW_heigher;
+			right_lower+=deltaW_lower;
+		}
+		addVertex(base0,base1,base2,lower,right_lower);
+		EndPrimitive();
+		heigher=lower;
+		lower-=deltaH;
+	}
+}
