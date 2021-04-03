@@ -1,5 +1,5 @@
 SCC = This is a Source Code Control file
 
-[MoonVis.sln]
-SCC_Aux_Path = "J:\vss"
-SCC_Project_Name = "$/MoonVisTiny.root/MoonVis/Current", VLGAAAAA
+[MoonVis.vcproj]
+SCC_Aux_Path = "E:\vss"
+SCC_Project_Name = "$/MoonVis.root/MoonVis/Current/MoonVis", RBAAAAAA
